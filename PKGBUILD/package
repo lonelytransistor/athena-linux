@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+pkgnames=(athena-linux)
+url="https://github.com/lonelytransistor/athena-linux"
+pkgver=0.0.0-1
+timestamp=2022-02-06T07:36:50+0000
+pkgdesc="Athena kernel"
+section="utils"
+maintainer="Lonely Transistor <lonelytransistor@protonmail.com>"
+installdepends=(athena-athena)
+license=GPL-3.0-or-later
+image=base:v2.2.2
+makedepends=(build:wget build:git build:autoconf build:makeself build:device-tree-compiler build:bc build:lzop host:coreutils-df)
+
+source=()
+sha256sums=()
+
+_INITRAMFS="${srcdir}/initramfs/"
+function _prepareInitramfs() {
+    mkdir -p ${_INITRAMFS}/$1/bin/
+    mkdir -p ${_INITRAMFS}/$1/lib/
+    cp ${SYSROOT}/lib/ld-2.??.so ${SYSROOT}/lib/libc-2.??.so ${SYSROOT}/lib/libm-2.??.so ${_INITRAMFS}/$1/lib/
+    ln -s ld-2.??.so ${_INITRAMFS}/$1/lib/ld-linux-armhf.so.3
+    ln -s libc-2.??.so ${_INITRAMFS}/$1/lib/libc.so.6
+    ln -s libm-2.??.so ${_INITRAMFS}/$1/lib/libm.so.6
+    command_list=( ash blkid cat chmod chown cp dd dmesg echo false grep kill ln ls mkdir mkswap mount mv ps pwd reboot rm rmdir sed sh sleep swapoff swapon switch_root sync sysctl touch true umount )
+    for cmd in "${command_list[@]}"; do
+        ln -s busybox ${_INITRAMFS}/$1/bin/${cmd}
+    done
+    
+    install -m 755 init_$1.sh ${_INITRAMFS}/$1/init
+}
+function _buildInitramfs() {
+    cd busybox
+    cp ../busybox_config .config
+    make -j$(nproc)
+    cd ../kexec-tools
+    ./bootstrap
+    CFLAGS=-Os ./configure --host="$CHOST" --without-xen
+    make -j$(nproc)
+    cd ..
+    
+    install -m 755 busybox/busybox ${_INITRAMFS}/system/bin/
+    install -m 755 busybox/busybox ${_INITRAMFS}/kdump/bin/
+    install -m 755 kexec-tools/build/sbin/kexec ${_INITRAMFS}/system/bin/
+    install -m 755 kexec-tools/build/sbin/vmcore-dmesg ${_INITRAMFS}/kdump/bin/
+}
+function _buildKernel() {
+    cd linux
+
+    # Normal:
+    make defconfig zero-sugar_athena-system_defconfig
+    sed -i "s|CONFIG__INITRAMFS_SOURCE=.*|CONFIG__INITRAMFS_SOURCE=\"${_INITRAMFS}/system\"|g" .config
+    make -j$(nproc) LOCALVERSION="-athena"
+    make modules_install INSTALL_MOD_PATH="${pkgdir}"
+    install -m 644 -D arch/arm/boot/zImage "${pkgdir}"/boot/zImage
+    install -m 644 -D arch/arm/boot/dts/zero-sugar.dtb ../dtb_mod/zero-sugar.dtb
+    
+    # Kdump:
+    make defconfig zero-sugar_athena-kdump_defconfig
+    sed -i "s|CONFIG__INITRAMFS_SOURCE=.*|CONFIG__INITRAMFS_SOURCE=\"${_INITRAMFS}/kdump\"|g" .config
+    make -j$(nproc) LOCALVERSION="-kdump"
+    install -m 644 -D arch/arm/boot/zImage "${pkgdir}"/boot/zImage_kdump
+    install -m 644 -D arch/arm/boot/dts/zero-sugar.dtb "${pkgdir}"/boot/kdump.dtb
+
+    cd ../dtb_mod
+    ./patch.sh build
+    cd ..
+}
+
+prepare() {
+    git clone https://github.com/lonelytransistor/athena-linux
+    cd athena-linux
+    git submodule init
+    git submodule update
+}
+build() {
+    _prepareInitramfs system
+    _prepareInitramfs kdump
+
+    _buildInitramfs
+}
+package() {
+    _buildKernel
+
+    install -d "${pkgdir}"/boot/dtb
+    install -m 644 -D dtb_mod/dist/* "${pkgdir}"/boot/dtb/
+    ln -s dtb/zero-sugar_75mV.dtb "${pkgdir}"/boot/zero-sugar.dtb
+    
+    install -m 755 -D prepare_gadgetfs.sh "${pkgbuild}"/usr/sbin/prepare_gadgetfs.sh
+    install -m 755 -D rootdev "${pkgbuild}"/usr/sbin/rootdev
+    install -m 644 -D libcomposite.conf "${pkgbuild}"/etc/modules-load.d/libcomposite.conf
+    install -m 644 -D zram.conf "${pkgbuild}"/etc/modules-load.d/zram.conf
+}

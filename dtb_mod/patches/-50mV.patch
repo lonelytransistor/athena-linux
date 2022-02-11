@@ -1,0 +1,11 @@
+--- old.dts     2021-04-24 21:16:02.555481850 +0200
++++ new.dts     2021-04-24 21:16:06.495481720 +0200
+@@ -54,7 +54,7 @@
+ 			clock-frequency = <0x3b5dc100>;
+ 			clock-latency = <0xee6c>;
+ 			clocks = <0x01 0x1b5>;
+-			operating-points = <0x124f80 0x12b128 0xf32a0 0x106738 0xc15c0 0xee098>;
++			operating-points = <0x124f80 0x10C8E0 0xf32a0 0xE7EF0 0xc15c0 0xCF850>;
+ 			cpu-supply = <0x02>;
+ 			linux,phandle = <0x07>;
+ 			phandle = <0x07>;

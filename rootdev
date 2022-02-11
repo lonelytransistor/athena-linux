@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# reMarkable 2 will not recognize root when using the stock version of rootdev, so we do this little hack.
+
+# From gentoo wiki
+cmdline() {
+    local value
+    value=" $(cat /proc/cmdline) "
+    value="${value##* ${1}=}"
+    value="${value%% *}"
+    [ "${value}" != "" ] && echo "${value}"
+}
+function rootdev_new() {
+    probed_path=$(echo -ne "$@ " | sed "s~-[cdis][cdis]*\s\s*~~g" | sed "s~--\(block\|dev\) [[:alnum:]/][[:alnum:]/]*\s\s*~~g" | sed "s~--\(minor\|major\) [0-9][0-9]*\s\s*~~g" | sed "s~\s*$~~g" | sed "s~\s*$~~g" | sed "s~^\s*~~g")
+    
+    if [ ! -e ${probed_path} ] || [[ ${probed_path} =~ ^\ +$ ]] || [[ "${probed_path}" == "" ]] ; then
+        probed_path="/"
+    fi
+    probed_path=$(df --output=source ${probed_path} | tail -n1)
+    if [[ ${probed_path} == "none" ]]; then
+        echo -e "$(cmdline root)"
+    else
+        echo ${probed_path}
+    fi
+}
+rootdev.old "$@" 1>/dev/null 2>/dev/null && rootdev.old "$@" || rootdev_new "$@"
