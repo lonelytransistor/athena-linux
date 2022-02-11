@@ -69,8 +69,8 @@ function _buildKernel() {
 }
 
 prepare() {
-    git clone https://github.com/lonelytransistor/athena-linux
-    cd athena-linux
+    git clone https://github.com/lonelytransistor/athena-linux "${srcdir}"
+    cd "${srcdir}"
     git submodule init
     git submodule update
 }
