@@ -48,6 +48,7 @@ function _buildInitramfs() {
 function _buildKernel() {
     cd "${srcdir}"/linux
     
+    touch .scmversion
     # Kdump:
     make defconfig zero-sugar_athena-kdump_defconfig
     sed -i "s|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE=\"${_INITRAMFS}/kdump\"|g" .config
