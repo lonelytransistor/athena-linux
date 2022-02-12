@@ -49,13 +49,15 @@ function _buildKernel() {
     
     # Kdump:
     make defconfig zero-sugar_athena-kdump_defconfig
-    INITRAMFS_SRCDIR="${srcdir}/initramfs/system" make -j$(nproc) LOCALVERSION="-kdump"
+    sed -i "s|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE=\"${srcdir}/initramfs/kdump\"|g" .config
+    make -j$(nproc) LOCALVERSION="-kdump"
     install -m 644 -D arch/arm/boot/zImage "${srcdir}"/zImage_kdump
     install -m 644 -D arch/arm/boot/dts/zero-sugar.dtb "${srcdir}"/kdump.dtb
 
     # Normal:
     make defconfig zero-sugar_athena-system_defconfig
-    INITRAMFS_SRCDIR="${srcdir}/initramfs/system" make -j$(nproc) LOCALVERSION="-athena"
+    sed -i "s|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE=\"${srcdir}/initramfs/system\"|g" .config
+    make -j$(nproc) LOCALVERSION="-athena"
     install -m 644 -D arch/arm/boot/dts/zero-sugar.dtb "${srcdir}"/dtb_mod/zero-sugar.dtb
 
     cd "${srcdir}"/dtb_mod
