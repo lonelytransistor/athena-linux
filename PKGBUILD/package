@@ -67,10 +67,7 @@ function _buildKernel() {
 prepare() {
     echo "You are NOT prepared."
 
-    git clone https://github.com/lonelytransistor/athena-linux "${srcdir}"
-    cd "${srcdir}"
-    git submodule init
-    git submodule update
+    git clone https://github.com/lonelytransistor/athena-linux "${srcdir}" --recursive --shallow-submodules
 }
 build() {
     touch /repo/Packages.gz
