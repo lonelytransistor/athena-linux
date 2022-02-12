@@ -97,8 +97,8 @@ package() {
     install -m 644 -D "${srcdir}"/dtb_mod/dist/* "${pkgdir}"/boot/dtb/
     ln -s "${srcdir}"/dtb/zero-sugar_75mV.dtb "${pkgdir}"/boot/zero-sugar.dtb
     
-    install -m 755 -D "${srcdir}"/prepare_gadgetfs.sh "${pkgbuild}"/usr/sbin/prepare_gadgetfs.sh
-    install -m 755 -D "${srcdir}"/rootdev "${pkgbuild}"/usr/sbin/rootdev
-    install -m 644 -D "${srcdir}"/libcomposite.conf "${pkgbuild}"/etc/modules-load.d/libcomposite.conf
-    install -m 644 -D "${srcdir}"/zram.conf "${pkgbuild}"/etc/modules-load.d/zram.conf
+    install -m 755 -D "${srcdir}"/prepare_gadgetfs.sh "${pkgdir}"/usr/sbin/prepare_gadgetfs.sh
+    install -m 755 -D "${srcdir}"/rootdev "${pkgdir}"/usr/sbin/rootdev
+    install -m 644 -D "${srcdir}"/libcomposite.conf "${pkgdir}"/etc/modules-load.d/libcomposite.conf
+    install -m 644 -D "${srcdir}"/zram.conf "${pkgdir}"/etc/modules-load.d/zram.conf
 }
