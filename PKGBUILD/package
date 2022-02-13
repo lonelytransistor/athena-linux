@@ -2,48 +2,46 @@
 
 pkgnames=(athena-linux)
 url="https://github.com/lonelytransistor/athena-linux"
-pkgver=1.0.0-1
+pkgver=4.14.78-1
 timestamp=2022-02-06T07:36:50+0000
 pkgdesc="Athena kernel"
 section="utils"
 maintainer="Lonely Transistor <lonelytransistor@protonmail.com>"
-installdepends=(athena-athena)
+installdepends=(athena-linux)
 license=GPL-3.0-or-later
 image=base:v2.2.2
-makedepends=(build:wget build:git build:autoconf build:makeself build:device-tree-compiler build:bc build:lzop build:kmod)
+makedepends=(build:wget build:git build:autoconf build:makeself build:device-tree-compiler build:bc build:lzop build:kmod build:bison build:flex build:libssl-dev)
 
 source=()
 sha256sums=()
 
-_INITRAMFS="${srcdir}/initramfs/"
 function _prepareInitramfs() {
-    mkdir -p ${_INITRAMFS}/$1/bin/
-    mkdir -p ${_INITRAMFS}/$1/lib/
-    cp ${SYSROOT}/lib/ld-2.??.so ${SYSROOT}/lib/libc-2.??.so ${SYSROOT}/lib/libm-2.??.so ${_INITRAMFS}/$1/lib/
-    ln -s ld-2.??.so ${_INITRAMFS}/$1/lib/ld-linux-armhf.so.3
-    ln -s libc-2.??.so ${_INITRAMFS}/$1/lib/libc.so.6
-    ln -s libm-2.??.so ${_INITRAMFS}/$1/lib/libm.so.6
+    mkdir -p "${srcdir}"/linux/initramfs/$1/bin/
+    mkdir -p "${srcdir}"/linux/initramfs/$1/lib/
+    cp ${SYSROOT}/lib/ld-2.??.so ${SYSROOT}/lib/libc-2.??.so ${SYSROOT}/lib/libm-2.??.so "${srcdir}"/linux/initramfs/$1/lib/
+    ln -s $(find ${SYSROOT}/lib/ld-2.??.so -printf "%f\n") "${srcdir}"/linux/initramfs/$1/lib/ld-linux-armhf.so.3
+    ln -s $(find ${SYSROOT}/lib/libc-2.??.so -printf "%f\n") "${srcdir}"/linux/initramfs/$1/lib/libc.so.6
+    ln -s $(find ${SYSROOT}/lib/libm-2.??.so -printf "%f\n") "${srcdir}"/linux/initramfs/$1/lib/libm.so.6
     command_list=( ash blkid cat chmod chown cp dd dmesg echo false grep kill ln ls mkdir mkswap mount mv ps pwd reboot rm rmdir sed sh sleep swapoff swapon switch_root sync sysctl touch true umount )
     for cmd in "${command_list[@]}"; do
-        ln -s busybox ${_INITRAMFS}/$1/bin/${cmd}
+        ln -s busybox "${srcdir}"/linux/initramfs/$1/bin/${cmd}
     done
     
-    install -m 755 init_$1.sh ${_INITRAMFS}/$1/init
+    install -m 755 "${srcdir}"/init_$1.sh "${srcdir}"/linux/initramfs/$1/init
 }
 function _buildInitramfs() {
     cd "${srcdir}"/busybox
-    cp ../busybox_config .config
+    cp "${srcdir}"/busybox_config .config
     make -j$(nproc)
     cd "${srcdir}"/kexec-tools
     ./bootstrap
     CFLAGS=-Os ./configure --host="$CHOST" --without-xen
     make -j$(nproc)
     
-    cd "${srcdir}"
-    install -m 755 busybox/busybox ${_INITRAMFS}/system/bin/
-    install -m 755 busybox/busybox ${_INITRAMFS}/kdump/bin/
-    install -m 755 kexec-tools/build/sbin/kexec ${_INITRAMFS}/system/bin/
-    install -m 755 kexec-tools/build/sbin/vmcore-dmesg ${_INITRAMFS}/kdump/bin/
+    install -m 755 "${srcdir}"/busybox/busybox "${srcdir}"/linux/initramfs/system/bin/
+    install -m 755 "${srcdir}"/busybox/busybox "${srcdir}"/linux/initramfs/kdump/bin/
+    install -m 755 "${srcdir}"/kexec-tools/build/sbin/kexec "${srcdir}"/linux/initramfs/system/bin/
+    install -m 755 "${srcdir}"/kexec-tools/build/sbin/vmcore-dmesg "${srcdir}"/linux/initramfs/kdump/bin/
 }
 function _buildKernel() {
     cd "${srcdir}"/linux
@@ -51,15 +49,14 @@ function _buildKernel() {
     
     # Kdump:
     make defconfig zero-sugar_athena-kdump_defconfig
-    sed -i "s|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE=\"${_INITRAMFS}/kdump\"|g" .config
     make -j$(nproc) LOCALVERSION="-kdump"
     install -m 644 -D arch/arm/boot/zImage "${srcdir}"/zImage_kdump
     install -m 644 -D arch/arm/boot/dts/zero-sugar.dtb "${srcdir}"/kdump.dtb
 
     # Normal:
     make defconfig zero-sugar_athena-system_defconfig
-    sed -i "s|CONFIG_INITRAMFS_SOURCE=.*|CONFIG_INITRAMFS_SOURCE=\"${_INITRAMFS}/system\"|g" .config
     make -j$(nproc) LOCALVERSION="-athena"
+    install -m 644 -D arch/arm/boot/zImage "${srcdir}"/zImage
     install -m 644 -D arch/arm/boot/dts/zero-sugar.dtb "${srcdir}"/dtb_mod/zero-sugar.dtb
 
     cd "${srcdir}"/dtb_mod
@@ -69,10 +66,7 @@ function _buildKernel() {
 prepare() {
     echo "You are NOT prepared."
 
-    git clone https://github.com/lonelytransistor/athena-linux "${srcdir}"
-    cd "${srcdir}"
-    git submodule init
-    git submodule update
+    git clone https://github.com/lonelytransistor/athena-linux -b zero-colors "${srcdir}" --recursive --shallow-submodules
 }
 build() {
     touch /repo/Packages.gz
@@ -84,19 +78,19 @@ build() {
     _buildInitramfs
     _buildKernel
 
-    cd "${srcdir}/linux"
-    make modules_install INSTALL_MOD_PATH="${srcdir}/modules"
+    cd "${srcdir}"/linux
+    make modules_install INSTALL_MOD_PATH="${srcdir}"/modules
 }
 package() {
     cp -r "${srcdir}"/modules/lib "${pkgdir}"/lib
 
     install -m 644 -D "${srcdir}"/zImage_kdump "${pkgdir}"/boot/zImage_kdump
     install -m 644 -D "${srcdir}"/kdump.dtb "${pkgdir}"/boot/kdump.dtb
-    install -m 644 -D "${srcdir}"/linux/arch/arm/boot/zImage "${pkgdir}"/boot/zImage
+    install -m 644 -D "${srcdir}"/zImage "${pkgdir}"/boot/zImage
 
     install -d "${pkgdir}"/boot/dtb
     install -m 644 -D "${srcdir}"/dtb_mod/dist/* "${pkgdir}"/boot/dtb/
-    ln -s "${srcdir}"/dtb/zero-sugar_75mV.dtb "${pkgdir}"/boot/zero-sugar.dtb
+    ln -s dtb/zero-sugar_75mV.dtb "${pkgdir}"/boot/zero-sugar.dtb
     
     install -m 755 -D "${srcdir}"/prepare_gadgetfs.sh "${pkgdir}"/usr/sbin/prepare_gadgetfs.sh
     install -m 755 -D "${srcdir}"/rootdev "${pkgdir}"/usr/sbin/rootdev

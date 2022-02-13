@@ -19,6 +19,8 @@ mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t devtmpfs none /dev
 
+mount -o rw /dev/mmcblk2p4 /mnt/rw
+mkdir /mnt/rw/dupa
 # Perform sanity check. If failed uboot will start normal kernel next.
 test -e $(cmdline root_ro) || exit 1
 test -e $(cmdline root_rw) || exit 1
@@ -33,21 +35,17 @@ mkdir -p /mnt/rw/.rootdir
 mkdir -p /mnt/rw/.workdir
 
 # Remove all older overrides on overlay root. This helps with soft bricks caused by a firmware update.
-(
-cd /mnt/ro
-for fname in $(find); do
-    if [ 0$(stat --printf=%Y /mnt/ro/${fname}) == 0$(stat --printf=%Y /mnt/rw/.rootdir/${fname}) ]; then
-        rm /mnt/rw/.rootdir/${fname}
-    do
-done
-)
+#(
+#cd /mnt/ro
+#for fname in $(find); do
+#    if [ 0$(stat --printf=%Y /mnt/ro/${fname}) == 0$(stat --printf=%Y /mnt/rw/.rootdir/${fname}) ]; then
+#        rm /mnt/rw/.rootdir/${fname}
+#    do
+#done
+#)
 
 # Prepare overlay root.
 mount -t overlay -o lowerdir=/mnt/ro,upperdir=/mnt/rw/.rootdir,workdir=/mnt/rw/.workdir rootfs /mnt/root
-if [ ! -e /mnt/root/etc/fstab ]; then
-    mkdir -p /mnt/root/etc
-    sed -r '\~^/dev/mmcblk[0-9]+p[0-9]+\s+/home\s~d' /mnt/ro/etc/fstab > /mnt/root/etc/fstab
-fi
 mkdir -p /mnt/root/home/root
 mount --rbind /mnt/rw/root /mnt/root/home/root
 
