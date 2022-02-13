@@ -17,8 +17,8 @@ function rootdev_new() {
         probed_path="/"
     fi
     probed_path=$(df --output=source ${probed_path} | tail -n1)
-    if [[ ${probed_path} == "none" ]]; then
-        echo -e "$(cmdline root)"
+    if [[ ${probed_path} == "none" ]] || [[ ${probed_path} == "rootfs" ]]; then
+        echo -e "$(cmdline root_ro)"
     else
         echo ${probed_path}
     fi
