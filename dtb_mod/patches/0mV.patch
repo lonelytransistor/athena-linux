@@ -1,11 +1,27 @@
---- old.dts     2021-04-24 21:16:02.555481850 +0200
-+++ new.dts     2021-04-24 21:16:06.495481720 +0200
-@@ -54,7 +54,7 @@
- 			clock-frequency = <0x3b5dc100>;
- 			clock-latency = <0xee6c>;
- 			clocks = <0x01 0x1b5>;
--			operating-points = <0x124f80 0x12b128 0xf32a0 0x106738 0xc15c0 0xee098>;
-+			operating-points = <0x124f80 0x118C30 0xf32a0 0xF4240 0xc15c0 0xDBBA0>;
- 			cpu-supply = <0x02>;
- 			linux,phandle = <0x07>;
- 			phandle = <0x07>;
+--- old.dts	2022-02-13 15:22:27.993332891 +0100
++++ new.dts	2022-02-13 15:29:59.513332811 +0100
+@@ -2066,21 +2066,21 @@
+ 
+ 		opp-792000000 {
+ 			opp-hz = <0x00 0x2f34f600>;
+-			opp-microvolt = <0xf4240>;
++			opp-microvolt = <0xe1d48>;
+ 			clock-latency-ns = <0x249f0>;
+ 			opp-supported-hw = <0x0f 0x0f>;
+ 		};
+ 
+ 		opp-996000000 {
+ 			opp-hz = <0x00 0x3b5dc100>;
+-			opp-microvolt = <0x10c8e0>;
++			opp-microvolt = <0xfa3e8>;
+ 			clock-latency-ns = <0x249f0>;
+ 			opp-supported-hw = <0x0c 0x0f>;
+ 		};
+ 
+ 		opp-1200000000 {
+ 			opp-hz = <0x00 0x47868c00>;
+-			opp-microvolt = <0x12b128>;
++			opp-microvolt = <0x118c30>;
+ 			clock-latency-ns = <0x249f0>;
+ 			opp-supported-hw = <0x08 0x0f>;
+ 		};
