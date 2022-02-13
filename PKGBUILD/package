@@ -2,7 +2,7 @@
 
 pkgnames=(athena-linux)
 url="https://github.com/lonelytransistor/athena-linux"
-pkgver=4.14.78-1
+pkgver=5.4.70-1
 timestamp=2022-02-06T07:36:50+0000
 pkgdesc="Athena kernel"
 section="utils"
