@@ -19,8 +19,6 @@ mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t devtmpfs none /dev
 
-mount -o rw /dev/mmcblk2p4 /mnt/rw
-mkdir /mnt/rw/dupa
 # Perform sanity check. If failed uboot will start normal kernel next.
 test -e $(cmdline root_ro) || exit 1
 test -e $(cmdline root_rw) || exit 1
@@ -50,7 +48,7 @@ mkdir -p /mnt/root/home/root
 mount --rbind /mnt/rw/root /mnt/root/home/root
 
 # Load dump kernel.
-kexec --type zImage --dtb=/mnt/root/boot/kdump.dtb -p /mnt/root/boot/zImage_kdump --append="root_ro=$(cmdline root_ro) root_rw=$(cmdline root_rw) single maxcpus=1 reset_devices"
+#kexec --type zImage --dtb=/mnt/root/boot/kdump.dtb -p /mnt/root/boot/zImage_kdump --append="root_ro=$(cmdline root_ro) root_rw=$(cmdline root_rw) single maxcpus=1 reset_devices"
 
 # Clean up.
 umount /proc
