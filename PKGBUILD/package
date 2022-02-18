@@ -2,8 +2,8 @@
 
 pkgnames=(athena-linux)
 url="https://github.com/lonelytransistor/athena-linux"
-pkgver=5.4.70-1
-timestamp=2022-02-06T07:36:50+0000
+pkgver=5.4.70-$(cat version)
+timestamp=$(date +"%Y-%m-%dT%H:%M:%S%z")
 pkgdesc="Athena kernel"
 section="utils"
 maintainer="Lonely Transistor <lonelytransistor@protonmail.com>"
