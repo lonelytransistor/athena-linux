@@ -12,7 +12,7 @@ cmdline() {
 }
 
 # Create mountpoints.
-mkdir -p /proc /sys /dev /mnt/ro /mnt/rw /mnt/root
+mkdir -p /proc /sys /dev /mnt/rw
 
 # Mount the /proc and /sys filesystems.
 mount -t proc none /proc
@@ -20,30 +20,22 @@ mount -t sysfs none /sys
 mount -t devtmpfs none /dev
 
 # Perform sanity check. If failed uboot will start normal kernel next.
-test -e $(cmdline root_ro) || exit 1
-test -e $(cmdline root_rw) || exit 1
-
-# Prepare read-only root.
-mount -o ro $(cmdline root_ro) /mnt/ro
+test -e "$(cmdline root_rw)" && mnt_dev="$(cmdline root_rw)" || mnt_dev="/dev/mmcblk2p4"
+test -e "$(cmdline root_rw)" || reboot
 
 # Prepare read-write root.
-mount -o rw $(cmdline root_rw) /mnt/rw
-
-# Prepare overlay root.
-mount -t overlay -o lowerdir=/mnt/ro,upperdir=/mnt/rw/.rootdir,workdir=/mnt/rw/.workdir rootfs /mnt/root
+mount -o rw ${mnt_dev} /mnt/rw
 
 # Dump kernel log into the read-write root.
 dump_name="$(date +%H.%M_%d.%m.%Y)"
-mkdir -p /mnt/root/var/log/kdump
-dmesg > /mnt/root/var/log/kdump/${dump_name}.log
-vmcore-dmesg > /mnt/root/var/log/kdump/${dump_name}.vmcore.log
-rm -f /mnt/root/var/log/kdump/last_log_name
-ln -s ${dump_name}.log /mnt/root/var/log/kdump/last_log
-echo ${dump_name} > /mnt/root/var/log/kdump/last_log_name
+mkdir -p /mnt/rw/.rootdir/var/log/kdump
+dmesg > /mnt/rw/.rootdir/var/log/kdump/${dump_name}.log
+vmcore-dmesg > /mnt/rw/.rootdir/var/log/kdump/${dump_name}.vmcore.log
+rm -f /mnt/rw/.rootdir/var/log/kdump/last_log_name
+ln -s ${dump_name}.log /mnt/rw/.rootdir/var/log/kdump/last_log
+echo ${dump_name} > /mnt/rw/.rootdir/var/log/kdump/last_log_name
 
 # Clean up.
-umount /mnt/root
-umount /mnt/ro
 umount /mnt/rw
 umount /proc
 umount /sys
