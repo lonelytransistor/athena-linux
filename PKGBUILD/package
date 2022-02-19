@@ -90,7 +90,7 @@ package() {
 
     install -d "${pkgdir}"/boot/dtb
     install -m 644 -D "${srcdir}"/dtb_mod/dist/* "${pkgdir}"/boot/dtb/
-    ln -s dtb/zero-sugar_75mV.dtb "${pkgdir}"/boot/zero-sugar.dtb
+    ln -s dtb/zs_0mV.dtb "${pkgdir}"/boot/zero-sugar.dtb
     
     install -m 755 -D "${srcdir}"/prepare_gadgetfs.sh "${pkgdir}"/usr/sbin/prepare_gadgetfs.sh
     install -m 755 -D "${srcdir}"/rootdev "${pkgdir}"/usr/sbin/rootdev

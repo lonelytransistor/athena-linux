@@ -8,7 +8,7 @@ function patch_dts() {
     dtc -o tmp.dts -O dts zero-sugar.dtb 2>/dev/null
     patch -p1 -F1 -i patches/$1.patch tmp.dts
     mkdir -p ${outDir}
-    dtc -o ${outDir}/zero-sugar_$1.dtb -O dtb tmp.dts 2>/dev/null
+    dtc -o ${outDir}/zs_$1.dtb -O dtb tmp.dts 2>/dev/null
     echo "Done."
 }
 function clean_up() {
@@ -27,13 +27,15 @@ if [ "$1" = "clean" ]; then
     clean_up
 elif [ "$1" = "build" ]; then
     clean_up
-    patch_dts -75mV
-    patch_dts -50mV
-    patch_dts -25mV
-    patch_dts   0mV
-    patch_dts  25mV
-    patch_dts  50mV
-    patch_dts  75mV
+    patch_dts -200mV
+    patch_dts -175mV
+    patch_dts -150mV
+    patch_dts -125mV
+    patch_dts -100mV
+    patch_dts  -75mV
+    patch_dts  -50mV
+    patch_dts  -25mV
+    patch_dts    0mV
     if [[ ${doCleanUp} -eq 1 ]]; then
         clean_up
     fi
