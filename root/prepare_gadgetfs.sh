@@ -2,16 +2,6 @@
 CONFIGFS="/sys/kernel/config"
 GADGET="$CONFIGFS/usb_gadget"
 
-# Configure zRAM
-function initZRAM() {
-set -e
-    swapoff /dev/zram0 || true
-    zram=( $(cat /etc/athena/zram) )
-    echo ${zram}M > /sys/block/zram0/disksize
-    mkswap /dev/zram0
-    swapon /dev/zram0
-set +e
-}
 # Create a new webcam
 function createWebcam() {
 set -e
@@ -277,5 +267,5 @@ createWebcam
 createEthernet
 createACM
 createMTP
-createKbd
-createTablet
+#createKbd
+#createTablet

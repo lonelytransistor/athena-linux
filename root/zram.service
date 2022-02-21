@@ -1,0 +1,9 @@
+[Unit]
+Description=Athena Gadgetfs Init Service
+After=home.mount
+
+[Service]
+ExecStart=/usr/sbin/prepare_gadgetfs.sh
+
+[Install]
+WantedBy=multi-user.target
